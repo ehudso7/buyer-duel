@@ -133,17 +133,17 @@
 
     <section class="panel paid-panel" aria-labelledby="paid-title">
       <h2 id="paid-title" class="panel-title">Go further</h2>
-      <a class="paid-primary" id="payment-link" href="#" target="_blank" rel="noopener">
+      <a class="paid-primary" id="payment-link" aria-disabled="true" tabindex="-1" target="_blank" rel="noopener">
         <span class="paid-kicker">Paid</span>
         <span class="paid-name">Private 3-decision pack</span>
-        <span class="paid-desc">Three of your own purchase decisions, compared privately. Never posted.</span>
-        <span class="paid-cta" aria-hidden="true">Get the pack →</span>
+        <span class="paid-desc">Payment link not configured. No purchase is available here.</span>
+        <span class="paid-cta" aria-hidden="true">Not available yet</span>
       </a>
-      <a class="paid-secondary" id="affiliate-link" href="#" target="_blank" rel="sponsored noopener">
+      <a class="paid-secondary" id="affiliate-link" aria-disabled="true" tabindex="-1" target="_blank" rel="sponsored noopener">
         <span id="affiliate-label">Compare options in this category</span>
         <span aria-hidden="true">→</span>
       </a>
-      <p class="disclosure">Affiliate link: we may earn a commission if you buy through it. It does not change your card.</p>
+      <p class="disclosure" id="paid-status">Affiliate link: we may earn a commission if you buy through it. It does not change your card.</p>
     </section>
 
     <section class="panel check-panel" aria-labelledby="check-title">
@@ -153,7 +153,7 @@
         <button type="button" class="btn" id="mark-due-btn">Mark 7-day check due</button>
         <button type="button" class="btn ghost" id="new-duel-btn">Start a new duel</button>
       </div>
-      <p class="fine">Stored only in this browser's localStorage. Clearing site data or using a private window removes it.</p>
+      <p class="fine" id="storage-status" role="status">Stored only in this browser's localStorage. Clearing site data or using a private window removes it.</p>
     </section>
   </main>
 

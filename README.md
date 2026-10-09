@@ -17,12 +17,12 @@ Files: `index.html`, `styles.css`, `app.js`, `README.md`. No build step and no n
 1. **Inputs** (all client-side): category (headphones, flights, insurance, laptop, skincare, other), what you bought, price paid (with currency), what the AI recommended, AI price (optional), why you overrode it (optional, one line), outcome status (`Too early` / `7-day check due`).
 2. **Scorecard** drawn on `<canvas>` at 1080×1080: `BUYER DUEL`, human pick vs AI pick, price gap, category, date, status, "Judge the outcome yourself.", and the public baseline in small type. Download it as a PNG. On phones that support it, a **Share image** button opens the system share sheet.
 3. **Captions** with one-click copy and live length counters:
-   - X / LinkedIn short (kept at 280 or under using X's weighted count)
+   - X / LinkedIn short (kept at under 280 using X's weighted count)
    - X / LinkedIn long
    - Instagram / TikTok
    - Stories overlay (under 12 words)
 4. **Paid block** under the card: primary "Private 3-decision pack" → `PAYMENT_URL`; secondary category affiliate slot → `AFFILIATE_URL`, with an affiliate disclosure.
-5. **7-day check**: the page remembers the duel and the date it was logged. After 7 days it tells the visitor the check is due; they switch the status and export a second card that shows "Logged … · Checked …".
+5. **7-day check**: the page remembers the duel and the date it was logged. After 7 days it tells the visitor the check is due; they switch the status and export a second card that shows "Logged … · Updated …"; selecting the status never asserts a week has elapsed or that an outcome was recorded.
 
 ### Public baseline (printed on every card, verbatim)
 
@@ -58,8 +58,8 @@ const CONFIG = Object.freeze({
 2. **`AFFILIATE_URL`**: your default affiliate link. To use a different link per category, fill the matching key in `AFFILIATE_URLS`. Empty strings fall back to `AFFILIATE_URL`.
 
 Rules:
-- Use full `https://` URLs. A link that isn't a valid http(s) URL is hidden instead of rendered broken.
-- While either value still contains `example.com`, the browser console shows a warning.
+- Use full `https://` URLs. Only valid HTTPS links without embedded credentials are enabled. Invalid URLs and example.com placeholders remain visibly unavailable and cannot navigate.
+- While either value still contains `example.com`, the block says it is not configured and the browser console shows a warning.
 - Payment links and affiliate links are public by design. **Do not put API keys or secret keys here.**
 - To change the pack's name or description, edit the `#payment-link` block in `index.html`.
 
@@ -107,7 +107,7 @@ Quick acceptance check: pick a category, enter a product, price and AI pick, cli
 
 1. Fill in the duel and click **Download PNG** (on a phone, **Share image** sends it straight to an app).
 2. Copy the caption for the platform:
-   - **X**: attach the PNG and paste the short caption (280 or under). Use the long one for X Premium or as a reply.
+   - **X**: attach the PNG and paste the short caption (under 280). Use the long one for X Premium or as a reply.
    - **LinkedIn**: attach the PNG and paste the long caption.
    - **Instagram / TikTok**: post the PNG as a square image or carousel slide, paste the Instagram / TikTok caption.
    - **Stories**: upload the PNG, add a text sticker, paste the Stories overlay line.
@@ -131,8 +131,12 @@ An automation can draft the next caption for you, but it cannot publish and it c
 
 ## Privacy and data
 
-Everything typed stays in the browser under the `localStorage` key `buyerDuel.v1`. **Start a new duel** clears it. Private windows and cleared site data lose it. Nothing is sent anywhere.
+Everything typed stays in the browser under the `localStorage` key `buyerDuel.v1`. **Start a new duel** clears it. Private windows and cleared site data lose it. No form data is sent by the app. Following configured external links or using the share sheet leaves the app; review the destination’s terms. If storage is blocked, the page warns that inputs may be lost.
 
 ## Browser support
 
 Current Chrome, Edge, Safari (macOS and iOS 15+), and Firefox. The PNG is generated with `canvas.toBlob`. Clipboard copy uses the Clipboard API with a fallback; if both are blocked, the caption text is selected so the visitor can press Ctrl/Cmd+C.
+
+## Repair notes
+
+Status is user-selected, not proof of elapsed time or a recorded outcome. Dates loaded from storage are checked; invalid and future creation dates are reset. Prices use one selected currency for both picks. Payment scope, delivery and privacy promises must be established by the operator before configuring a payment link. No paid service is currently enabled.

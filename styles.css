@@ -337,3 +337,19 @@ canvas { display: block; width: 100%; height: 100%; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Preserve narrow-screen layout, text zoom, and unavailable link clarity. */
+[hidden] { display: none !important; }
+.duel-side { min-width: 0; }
+.row > * { min-width: 0; }
+.caption-head { flex-wrap: wrap; }
+.caption textarea { font-size: 16px; }
+.caption .btn { min-height: 44px; }
+[aria-disabled="true"] { opacity: .7; cursor: default; }
+@media (max-width: 360px) {
+  .row { flex-wrap: wrap; }
+  .currency { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

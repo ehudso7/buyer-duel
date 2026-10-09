@@ -111,6 +111,7 @@
   // State
   // ---------------------------------------------------------------------------
   let meta = { createdAt: null, updatedAt: null };
+  let storageAvailable = true;
 
   const clean = (s, max) =>
     String(s ?? "")
@@ -134,10 +135,10 @@
     return {
       category,
       product: clean(fields.product.value, 60),
-      price: parseMoney(fields.price.value),
+      price: fields.price.validity.badInput ? NaN : parseMoney(fields.price.value),
       currency,
       aiPick: clean(fields.aiPick.value, 60),
-      aiPrice: parseMoney(fields.aiPrice.value),
+      aiPrice: fields.aiPrice.validity.badInput ? NaN : parseMoney(fields.aiPrice.value),
       reason: clean(fields.reason.value, 90),
       status: status in STATUSES ? status : "too-early",
     };
@@ -161,7 +162,7 @@
     const now = new Date().toISOString();
     if (hasContent && !meta.createdAt) meta.createdAt = now;
     meta.updatedAt = now;
-    storage.write({
+    storageAvailable = storage.write({
       v: 1,
       state: {
         ...state,
@@ -392,7 +393,7 @@
 
     // Header: title + category pill
     ctx.fillStyle = COLORS.text;
-    ctx.font = font(900, 76);
+    ctx.font = font(900, 60);
     ctx.textBaseline = "alphabetic";
     tracked("BUYER DUEL", M, M + 66, 6);
     pill(CATEGORIES[s.category].label.toUpperCase(), W - M, M + 14, { bg: COLORS.text, fg: COLORS.bg });
@@ -401,11 +402,11 @@
     const isCheck = s.status === "7-day-check";
     const logged = meta.createdAt ? new Date(meta.createdAt) : new Date();
     const dateLine = isCheck
-      ? `Logged ${fmtDate(logged)} · Checked ${fmtDate(new Date())}`
+      ? `Logged ${fmtDate(logged)} · Updated ${fmtDate(new Date())}`
       : fmtDate(logged);
     ctx.font = font(600, 28);
     ctx.fillStyle = COLORS.muted;
-    ctx.fillText(dateLine, M, M + 118);
+    fitText(dateLine, M, M + 94, 560, { weight: 600, size: 26, minSize: 18, maxLines: 2, color: COLORS.muted });
     pill(STATUSES[s.status].label.toUpperCase(), W - M, M + 88, {
       bg: isCheck ? COLORS.human : COLORS.line,
       fg: isCheck ? COLORS.bg : COLORS.text,
@@ -473,25 +474,12 @@
     ctx.lineWidth = 2;
     ctx.strokeStyle = COLORS.line;
     ctx.stroke();
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = COLORS.text;
-    ctx.font = font(800, 36);
-    const headline = gapInfo.headline;
-    ctx.fillText(headline, M + 32, y + BAND_H / 2);
-    const hw = ctx.measureText(headline).width;
-    ctx.fillStyle = COLORS.muted;
-    let ds = 26;
-    ctx.font = font(500, ds);
-    const room = W - M * 2 - 32 - hw - 28 - 32;
-    while (ds > 18 && ctx.measureText(gapInfo.detail).width > room) {
-      ds -= 1;
-      ctx.font = font(500, ds);
-    }
-    const detailLines = wrapLines(gapInfo.detail, room, 2);
-    const dlh = ds * 1.2;
-    detailLines.forEach((l, i) =>
-      ctx.fillText(l, M + 32 + hw + 28, y + BAND_H / 2 + (i - (detailLines.length - 1) / 2) * dlh)
-    );
+    fitText(gapInfo.headline, M + 24, y + 10, W - M * 2 - 48, {
+      size: 32, minSize: 20, maxLines: 1, color: COLORS.text
+    });
+    fitText(gapInfo.detail, M + 24, y + 48, W - M * 2 - 48, {
+      weight: 500, size: 22, minSize: 16, maxLines: 1, color: COLORS.muted
+    });
     y += BAND_H + 24;
 
     // Override reason
@@ -584,7 +572,7 @@
         `AI: ${ai} (${aiPrice})`,
         reason ? `Why I overrode it: ${reason}` : null,
         "",
-        isCheck ? "A week in. Not a verdict. You judge." : "Too early to call. Not a verdict. You judge.",
+        isCheck ? "Check due. Not a verdict. You judge." : "Too early to call. Not a verdict. You judge.",
         "#BuyerDuel",
       ]
         .filter((l) => l !== null)
@@ -593,16 +581,16 @@
     const mine0 = s.product || "my pick";
     const ai0 = s.aiPick || "the AI's pick";
     let text = build(mine0, ai0, s.reason);
-    if (xLength(text) <= 280) return text;
+    if (xLength(text) < 280) return text;
     // Shorten progressively: reason first, then the two product names.
     for (let r = [...s.reason].length - 1; r >= 20; r -= 5) {
       text = build(mine0, ai0, truncate(s.reason, r));
-      if (xLength(text) <= 280) return text;
+      if (xLength(text) < 280) return text;
     }
     text = build(mine0, ai0, "");
     for (let p = 59; p >= 12; p -= 3) {
       text = build(truncate(mine0, p), truncate(ai0, p), "");
-      if (xLength(text) <= 280) return text;
+      if (xLength(text) < 280) return text;
     }
     return text;
   }
@@ -620,7 +608,7 @@
       s.reason ? `Why I overrode the AI: ${s.reason}` : null,
       "",
       isCheck
-        ? "It's been a week. I'm not calling a winner here. The card is a comparison, not a verdict."
+        ? "I've marked my 7-day check as due. No outcome is recorded here. This is a comparison, not a verdict."
         : "Too early to say how it turns out. I'll check back in 7 days.",
       "",
       `For context: ${BASELINE.lines[0]} ${BASELINE.lines[1]} (BCG consumer survey, 2026, 13,000+ people, 12 markets.) Those are adoption figures, not proof that this decision was right.`,
@@ -642,7 +630,7 @@
       `🟦 AI's pick: ${ai} — ${aiPrice}`,
       s.reason ? `Why I overrode it: ${s.reason}` : null,
       "",
-      isCheck ? "One week later. Who called it? You decide." : "Too early to judge. Check back in 7 days.",
+      isCheck ? "7-day check marked due. Compare the picks; judge the outcome yourself." : "Too early to judge. Check back in 7 days.",
       "",
       "Comment HUMAN or AI 👇",
       "",
@@ -664,7 +652,7 @@
       other: "this buy",
     }[s.category];
     return s.status === "7-day-check"
-      ? `Day 7: me vs the AI on ${shortCat}. Verdict?`
+      ? `Check due: me vs AI on ${shortCat}. You judge.`
       : `Me vs the AI on ${shortCat}. You judge.`;
   }
 
@@ -712,6 +700,7 @@
       btn.type = "button";
       btn.className = "btn";
       btn.textContent = "Copy";
+      btn.setAttribute("aria-label", `Copy ${def.title} caption`);
       btn.addEventListener("click", async () => {
         const ok = await copyText(ta.value);
         if (ok) {
@@ -826,7 +815,7 @@
   function fileName(s) {
     const d = new Date();
     const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    const suffix = s.status === "7-day-check" ? "-7day" : "";
+    const suffix = s.status === "7-day-check" ? "-check-due" : "";
     return `buyer-duel-${s.category}-${slug(s.product)}-${stamp}${suffix}.png`;
   }
 
@@ -862,8 +851,8 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
-      setMsg(`Saved ${a.download}. Post it with a caption below.`);
-      toast("PNG downloaded");
+      setMsg(`Download requested: ${a.download}. Check your browser downloads, then post it with a caption below.`);
+      toast("PNG download requested");
     } catch (err) {
       setMsg(`Could not export the PNG (${err.message}). Try another browser.`, true);
     } finally {
@@ -906,7 +895,7 @@
   const safeUrl = (u) => {
     try {
       const url = new URL(u);
-      return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
+      return url.protocol === "https:" && !url.username && !url.password && url.hostname !== "example.com" && !url.hostname.endsWith(".example.com") ? url.href : null;
     } catch {
       return null;
     }
@@ -917,10 +906,22 @@
     const aff = $("affiliate-link");
     const payUrl = safeUrl(CONFIG.PAYMENT_URL);
     const affUrl = safeUrl(CONFIG.AFFILIATE_URLS[s.category] || CONFIG.AFFILIATE_URL);
-    if (payUrl) pay.href = payUrl;
-    pay.hidden = !payUrl;
-    if (affUrl) aff.href = affUrl;
-    aff.hidden = !affUrl;
+    for (const [link, url] of [[pay, payUrl], [aff, affUrl]]) {
+      if (url) {
+        link.href = url;
+        link.removeAttribute("aria-disabled");
+        link.removeAttribute("tabindex");
+      } else {
+        link.removeAttribute("href");
+        link.setAttribute("aria-disabled", "true");
+        link.setAttribute("tabindex", "-1");
+      }
+    }
+    document.querySelector(".paid-cta").textContent = payUrl ? "View pack details →" : "Not available yet";
+    document.querySelector(".paid-desc").textContent = payUrl
+      ? "View the operator’s scope, price, delivery and privacy terms before purchasing."
+      : "Payment link not configured. No purchase is available here.";
+    $("paid-status").textContent = !affUrl ? "Affiliate options are not configured yet." : "Affiliate link: we may earn a commission if you buy through it.";
     $("affiliate-label").textContent =
       s.category === "other" ? "Compare options for your next purchase" : `Compare ${CATEGORIES[s.category].label.toLowerCase()} options`;
   }
@@ -929,6 +930,9 @@
     const el = $("check-text");
     const markBtn = $("mark-due-btn");
     el.textContent = "";
+    $("storage-status").textContent = storageAvailable
+      ? "Saved only in this browser. Clearing site data or using a private window may remove it. No automatic reminder is sent."
+      : "Browser storage is unavailable. Your inputs may be lost on reload. Download your card before leaving.";
     if (!meta.createdAt) {
       el.append(
         "Bookmark this page (Ctrl/Cmd+D). Your inputs stay in this browser, so in 7 days you can come back, switch the status to ",
@@ -941,7 +945,7 @@
     const days = daysSince(meta.createdAt);
     const started = fmtDate(new Date(meta.createdAt));
     if (s.status === "7-day-check") {
-      el.append(`Duel logged ${started} (${days} day${days === 1 ? "" : "s"} ago). Your card now shows the 7-day check. Download it as your second card.`);
+      el.append(`Duel logged ${started} (${days} day${days === 1 ? "" : "s"} ago). Status manually marked due; this does not verify that a week has elapsed or record an outcome. Export an updated card when ready.`);
       markBtn.hidden = true;
     } else if (days >= 7) {
       el.append(
@@ -999,7 +1003,7 @@
     if (saved?.state) applyState(saved.state);
     if (saved?.meta) {
       meta = {
-        createdAt: typeof saved.meta.createdAt === "string" ? saved.meta.createdAt : null,
+        createdAt: typeof saved.meta.createdAt === "string" && Number.isFinite(Date.parse(saved.meta.createdAt)) && Date.parse(saved.meta.createdAt) <= Date.now() ? saved.meta.createdAt : null,
         updatedAt: typeof saved.meta.updatedAt === "string" ? saved.meta.updatedAt : null,
       };
     }
