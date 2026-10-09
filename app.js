@@ -130,7 +130,7 @@
 
   function readState() {
     const status = form.querySelector('input[name="status"]:checked')?.value;
-    const category = fields.category.value in CATEGORIES ? fields.category.value : "other";
+    const category = Object.prototype.hasOwnProperty.call(CATEGORIES, fields.category.value) ? fields.category.value : "other";
     const currency = CURRENCIES.has(fields.currency.value) ? fields.currency.value : "USD";
     return {
       category,
@@ -140,20 +140,20 @@
       aiPick: clean(fields.aiPick.value, 60),
       aiPrice: fields.aiPrice.validity.badInput ? NaN : parseMoney(fields.aiPrice.value),
       reason: clean(fields.reason.value, 90),
-      status: status in STATUSES ? status : "too-early",
+      status: Object.prototype.hasOwnProperty.call(STATUSES, status) ? status : "too-early",
     };
   }
 
   function applyState(s) {
     if (!s) return;
-    if (s.category in CATEGORIES) fields.category.value = s.category;
+    if (Object.prototype.hasOwnProperty.call(CATEGORIES, s.category)) fields.category.value = s.category;
     if (CURRENCIES.has(s.currency)) fields.currency.value = s.currency;
     fields.product.value = typeof s.product === "string" ? s.product.slice(0, 60) : "";
     fields.aiPick.value = typeof s.aiPick === "string" ? s.aiPick.slice(0, 60) : "";
     fields.reason.value = typeof s.reason === "string" ? s.reason.slice(0, 90) : "";
     fields.price.value = Number.isFinite(s.price) ? String(s.price) : "";
     fields.aiPrice.value = Number.isFinite(s.aiPrice) ? String(s.aiPrice) : "";
-    const radio = form.querySelector(`input[name="status"][value="${s.status in STATUSES ? s.status : "too-early"}"]`);
+    const radio = form.querySelector(`input[name="status"][value="${Object.prototype.hasOwnProperty.call(STATUSES, s.status) ? s.status : "too-early"}"]`);
     if (radio) radio.checked = true;
   }
 
@@ -362,7 +362,7 @@
     const priceText = Number.isFinite(price) ? money(price, currency) : "Price n/a";
     let s = 64;
     ctx.font = font(800, s);
-    while (s > 34 && ctx.measureText(priceText).width > innerW) {
+    while (s > 18 && ctx.measureText(priceText).width > innerW) {
       s -= 2;
       ctx.font = font(800, s);
     }
