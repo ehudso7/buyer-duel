@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Buyer Duel</title>
+  <meta name="description" content="Your pick vs the AI's pick on one real purchase. Make a shareable scorecard and captions. No account; everything stays in your browser.">
+  <meta name="theme-color" content="#0e0f13">
+  <meta property="og:title" content="Buyer Duel">
+  <meta property="og:description" content="Your pick vs the AI's pick on one real purchase. Judge the outcome yourself.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e0f13'/%3E%3Cpath d='M14 20h14v24H14zM36 20h14v24H36z' fill='%23ff8a3d'/%3E%3Cpath d='M36 20h14v24H36z' fill='%235cc8ff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <!--
+    Custom domain (optional): GitHub Pages reads a file named CNAME at the repo root.
+    To use one, create CNAME containing ONLY your domain, e.g.:  duel.your-domain.tld
+    No CNAME file is committed on purpose. See README → "Custom domain".
+  -->
+</head>
+<body>
+  <a class="skip-link" href="#duel-form">Skip to the form</a>
+
+  <header class="site-header">
+    <div class="wrap">
+      <p class="brand"><span class="brand-mark" aria-hidden="true"></span>Buyer Duel</p>
+      <h1>You vs the AI's pick.<br><span>One real purchase. One card. You judge.</span></h1>
+      <p class="lede">Enter a purchase where an AI recommended something and you bought what you chose. Get a 1080×1080 scorecard and ready-to-paste captions. No account. Nothing leaves your browser.</p>
+    </div>
+  </header>
+
+  <noscript>
+    <p class="noscript wrap">Buyer Duel draws your card in the browser and needs JavaScript enabled.</p>
+  </noscript>
+
+  <main class="wrap layout">
+    <section class="panel form-panel" aria-labelledby="form-title">
+      <h2 id="form-title" class="panel-title"><span class="step">1</span>Your duel</h2>
+
+      <form id="duel-form" novalidate autocomplete="off">
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            <option value="headphones">Headphones</option>
+            <option value="flights">Flights</option>
+            <option value="insurance">Insurance</option>
+            <option value="laptop">Laptop</option>
+            <option value="skincare">Skincare</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <fieldset class="duel-side human">
+          <legend>Your pick</legend>
+          <div class="field">
+            <label for="product">What you bought</label>
+            <input id="product" name="product" type="text" maxlength="60" required placeholder="e.g. Sony WH-1000XM5" enterkeyhint="next">
+            <p class="error" id="product-error" hidden>Add what you bought.</p>
+          </div>
+          <div class="row">
+            <div class="field grow">
+              <label for="price">Price you paid</label>
+              <input id="price" name="price" type="number" inputmode="decimal" min="0" max="10000000" step="0.01" required placeholder="0.00">
+              <p class="error" id="price-error" hidden>Enter the price you paid (0 or more).</p>
+            </div>
+            <div class="field currency">
+              <label for="currency">Currency</label>
+              <select id="currency" name="currency">
+                <option value="USD">USD $</option>
+                <option value="EUR">EUR €</option>
+                <option value="GBP">GBP £</option>
+                <option value="CAD">CAD $</option>
+                <option value="AUD">AUD $</option>
+                <option value="INR">INR ₹</option>
+                <option value="JPY">JPY ¥</option>
+                <option value="BRL">BRL R$</option>
+                <option value="MXN">MXN $</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="duel-side ai">
+          <legend>The AI's pick</legend>
+          <div class="field">
+            <label for="aiPick">What the AI recommended</label>
+            <input id="aiPick" name="aiPick" type="text" maxlength="60" required placeholder="e.g. Bose QuietComfort Ultra" enterkeyhint="next">
+            <p class="error" id="aiPick-error" hidden>Add what the AI recommended.</p>
+          </div>
+          <div class="field">
+            <label for="aiPrice">AI recommended price <span class="optional">optional</span></label>
+            <input id="aiPrice" name="aiPrice" type="number" inputmode="decimal" min="0" max="10000000" step="0.01" placeholder="0.00">
+            <p class="error" id="aiPrice-error" hidden>Use a number of 0 or more, or leave it blank.</p>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="reason">Why you overrode it <span class="optional">optional, one line</span></label>
+          <input id="reason" name="reason" type="text" maxlength="90" placeholder="e.g. Tried both in store, mine fit better" enterkeyhint="done">
+          <p class="hint"><span id="reason-count">0</span>/90</p>
+        </div>
+
+        <fieldset class="field status-field">
+          <legend>Outcome status</legend>
+          <div class="segmented">
+            <input type="radio" id="status-early" name="status" value="too-early" checked>
+            <label for="status-early">Too early</label>
+            <input type="radio" id="status-due" name="status" value="7-day-check">
+            <label for="status-due">7-day check due</label>
+          </div>
+        </fieldset>
+      </form>
+    </section>
+
+    <section class="panel preview-panel" aria-labelledby="preview-title">
+      <h2 id="preview-title" class="panel-title"><span class="step">2</span>Your card</h2>
+      <div class="canvas-frame">
+        <canvas id="card" width="1080" height="1080" role="img" aria-label="Buyer Duel scorecard preview"></canvas>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="download-btn">Download PNG</button>
+        <button type="button" class="btn" id="share-btn" hidden>Share image</button>
+      </div>
+      <p class="status-msg" id="form-msg" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel captions-panel" aria-labelledby="captions-title">
+      <h2 id="captions-title" class="panel-title"><span class="step">3</span>Captions</h2>
+      <p class="panel-sub">Edit if you like, then copy. Nothing is posted for you.</p>
+      <div class="captions" id="captions"></div>
+    </section>
+
+    <section class="panel paid-panel" aria-labelledby="paid-title">
+      <h2 id="paid-title" class="panel-title">Go further</h2>
+      <a class="paid-primary" id="payment-link" href="#" target="_blank" rel="noopener">
+        <span class="paid-kicker">Paid</span>
+        <span class="paid-name">Private 3-decision pack</span>
+        <span class="paid-desc">Three of your own purchase decisions, compared privately. Never posted.</span>
+        <span class="paid-cta" aria-hidden="true">Get the pack →</span>
+      </a>
+      <a class="paid-secondary" id="affiliate-link" href="#" target="_blank" rel="sponsored noopener">
+        <span id="affiliate-label">Compare options in this category</span>
+        <span aria-hidden="true">→</span>
+      </a>
+      <p class="disclosure">Affiliate link: we may earn a commission if you buy through it. It does not change your card.</p>
+    </section>
+
+    <section class="panel check-panel" aria-labelledby="check-title">
+      <h2 id="check-title" class="panel-title">The 7-day check</h2>
+      <p id="check-text">Bookmark this page. Your inputs stay in this browser, so in 7 days you can come back, switch the status to <strong>7-day check due</strong>, and export a second card.</p>
+      <div class="actions">
+        <button type="button" class="btn" id="mark-due-btn">Mark 7-day check due</button>
+        <button type="button" class="btn ghost" id="new-duel-btn">Start a new duel</button>
+      </div>
+      <p class="fine">Stored only in this browser's localStorage. Clearing site data or using a private window removes it.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <h2 class="footer-title">Public baseline printed on every card</h2>
+      <ul class="baseline">
+        <li><strong>31%</strong> of surveyed consumers use AI at least occasionally in a purchase journey.</li>
+        <li><strong>19%</strong> are regular AI users; about <strong>70%</strong> of those regular users buy what the AI recommends.</li>
+      </ul>
+      <p class="source">Source: BCG consumer survey, 2026, 13,000+ people, 12 markets.</p>
+      <p class="fine">These are adoption figures, not proof that any single decision was correct. Buyer Duel is a comparison, not a verdict.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
